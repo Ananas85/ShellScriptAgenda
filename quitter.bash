@@ -7,7 +7,6 @@ PID_FILE="$FOLDER_DIRECTORY/boucle.pid"
 # Creation des folders de base
 function f_init
 {
-
 if [ ! -d $FOLDER_DIRECTORY ]; then
     echo "Creation of $FOLDER_DIRECTORY"
     mkdir -p $FOLDER_DIRECTORY
@@ -17,14 +16,13 @@ if [ ! -f $DB_FILE ]; then
     echo "Creation of $DB_FILE"
     touch $DB_FILE
 fi
-
 }
 
-# Affichage de l'alerte
+# Affichage de l'alerte selon l'OS
 function f_show_message
 {
-OS=`uname -a  | cut -d' ' -f1`
-
+OS=`uname -a  | cut -d' ' -f1
+`
 if [ $OS == "Darwin" ]; then
 /usr/bin/osascript > /dev/null  <<-EOF
     tell application "System Events"
@@ -32,13 +30,14 @@ if [ $OS == "Darwin" ]; then
         display dialog "$1"
     end tell
 EOF
-
 else
+    # Todo: utiliser xmessage
     echo $1
 fi
 
 }
-# on run la boucle de vérification
+
+# on run la boucle de vérification des heures/minutes
 function f_run
 {
     echo "running..." > $PID_FILE
@@ -55,29 +54,29 @@ function f_run
     done
 }
 
-# On stoppe le prog
+# On stoppe le programme
 function f_stop
 {
     rm $PID_FILE
-    echo "Fin du programme"
+    echo "Fin du programme."
 }
 
 # On remove
 function f_remove
 {
-    # possibilite de faire un retour arriere de la derniere commande
+    # possibilite de faire un retour arriere de la derniere modification via recovery
     cp  "$DB_FILE" "$DB_FILE.bak"
     sed "/^$1/d" "$DB_FILE.bak" > "$DB_FILE"
     f_list
 }
 
-# On liste
+# On liste le fichier
 function f_list
 {
     cat $DB_FILE
 }
 
-# On clear
+# On clear le fichier en backupant
 function f_clear
 {
     cp  $DB_FILE "$DB_FILE.bak"
@@ -104,12 +103,13 @@ function f_help
     echo "$0 -r HHMM : Supprimer un rendez-vous."
 }
 
+# on test l'horaire passée en argument
 function f_test_horaire
 {
     HH=`echo $1 | cut -c -2`
     if [[ $HH = [0-9][0-9] ]]; then
         if [ $HH -lt 0 -o $HH -gt 23 ]; then
-            echo "Heures non valide, entre 00 et 23 attendu"
+            echo "Heures non valide, entre 00 et 23 attendu."
             f_help
             exit 1
         fi
@@ -121,29 +121,29 @@ function f_test_horaire
     MM=`echo $1 | cut -c 3-`
     if [[ $MM = [0-9][0-9] ]]; then
         if [ $MM -lt 0 -o $MM -gt 59 ]; then
-            echo "Minutes non valide, entre 00 et 59 attendu"
+            echo "Minutes non valide, entre 00 et 59 attendu."
             f_help
             exit 1
         fi
     else
-        echo "Minutes non numeriques"
+        echo "Minutes non numeriques."
         f_help
         exit 1
     fi
 }
 
-# on demarre
+# on demarre le programme
 function f_start
 {
 # lancement de la boucle en arriere plan si necessaire
 if [ ! -f $PID_FILE ]; then
     # on lance la boucle
-    echo "Demarrage du processus"
+    echo "Demarrage du processus."
     $0 run &
 fi
 }
 
-# recupere tout sauf le premier
+# recupere tout sauf le premier mot
 function f_last_message
 {
     echo $@ | cut -d' ' -f 2-
@@ -162,22 +162,25 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
+# stop
 if [ $1 == "-q" ]; then
     f_stop
     exit 0
 fi
 
+# recovery
 if [ $1 == "-recovery" ]; then
     f_recovery
     exit 0
 fi
 
-
+# clear
 if [ $1 == "-c" ]; then
     f_clear
     exit 0
 fi
 
+# remove
 if [ $1 == "-r" ]; then
     if [ $# -ne 2 ]; then
         echo "Il manque un argument."
@@ -188,21 +191,25 @@ if [ $1 == "-r" ]; then
     exit 0
 fi
 
+# liste
 if [ $1 == "-l" ]; then
     f_list
     exit 0
 fi
 
+# start
 if [ $1 == "-s" ]; then
     f_start
     exit 0
 fi
 
+# run
 if [ $1 == "run" ]; then
     f_run
     exit 0
 fi
 
+# on test enfin les derniers args
 if [ $# -lt 2 ]; then
     echo "Il manque des arguments."
     f_help $0
@@ -220,4 +227,5 @@ f_test_horaire $HORAIRE
 echo "Ajout du rendez vous $HORAIRE avec le message: $MESSAGE"
 echo "$HORAIRE $MESSAGE" >> $DB_FILE
 
+# start si necessaire
 f_start
