@@ -114,7 +114,7 @@ function f_test_horaire
             exit 1
         fi
     else
-        echo "Heures non numeriques"
+        echo "Heures non numeriques."
         f_help
         exit 1
     fi
