@@ -38,7 +38,7 @@ else
 fi
 
 }
-# on run la boucle
+# on run la boucle de vérification
 function f_run
 {
     echo "running..." > $PID_FILE
@@ -55,7 +55,7 @@ function f_run
     done
 }
 
-# On stoppe
+# On stoppe le prog
 function f_stop
 {
     rm $PID_FILE
